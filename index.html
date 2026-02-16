@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Basket | Checkout</title>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="nav-container">
+        <div class="brand">
+          <i class="fas fa-shopping-basket brand-icon"></i>
+          <span class="brand-name">
+            SmartBasket<span class="brand-highlight">Pro</span>
+          </span>
+        </div>
+      </div>
+    </nav>
+
+    <div id="app" class="app-container">
+      <!-- Screen 1: Shopping / Scanner Simulation (Now the Default/First Screen) -->
+      <section id="shopping-screen" class="screen active">
+        <div class="dashboard-grid">
+          <!-- Left Panel: Scanner & Status -->
+          <aside class="status-panel">
+            <div class="status-card">
+              <h3><i class="fas fa-wifi"></i> Basket Status</h3>
+
+              <div class="lid-status-container">
+                <div class="status-indicator">
+                  <span class="status-label">Lid:</span>
+                  <span id="lid-status" class="status-badge closed">
+                    <i class="fas fa-lock"></i> Locked
+                  </span>
+                </div>
+                <div class="battery-indicator">
+                  <i class="fas fa-battery-three-quarters"></i> 78%
+                </div>
+              </div>
+            </div>
+
+            <div class="simulation-controls">
+              <h3><i class="fas fa-barcode"></i> Add Items</h3>
+              <p class="control-hint">Simulate scanning items:</p>
+              <div class="scan-grid">
+                <button
+                  class="scan-btn"
+                  data-item="Whole Milk"
+                  data-price="2.50"
+                >
+                  <i class="fas fa-wine-bottle"></i> Milk ($2.50)
+                </button>
+                <button
+                  class="scan-btn"
+                  data-item="Wheat Bread"
+                  data-price="1.80"
+                >
+                  <i class="fas fa-bread-slice"></i> Bread ($1.80)
+                </button>
+                <button
+                  class="scan-btn"
+                  data-item="Gala Apples (1kg)"
+                  data-price="3.20"
+                >
+                  <i class="fas fa-apple-alt"></i> Apples ($3.20)
+                </button>
+                <button
+                  class="scan-btn"
+                  data-item="Dark Chocolate"
+                  data-price="1.50"
+                >
+                  <i class="fas fa-cookie"></i> Choco ($1.50)
+                </button>
+              </div>
+            </div>
+          </aside>
+
+          <!-- Right Panel: Cart -->
+          <main class="cart-panel">
+            <div class="panel-header">
+              <h2>Your Basket</h2>
+              <span class="session-id">Session: #892-BA</span>
+            </div>
+
+            <div class="cart-scroll-area">
+              <table class="cart-table">
+                <thead>
+                  <tr>
+                    <th>Item</th>
+                    <th class="text-right">Price</th>
+                  </tr>
+                </thead>
+                <tbody id="cart-items">
+                  <!-- Items injected here -->
+                </tbody>
+              </table>
+              <div id="empty-cart-msg" class="empty-cart-msg">
+                <i class="fas fa-shopping-cart"></i>
+                <p>Basket is empty. Scan an item to start.</p>
+              </div>
+            </div>
+
+            <footer class="cart-footer">
+              <div class="total-row">
+                <span>Subtotal</span>
+                <span id="cart-subtotal">$0.00</span>
+              </div>
+              <div class="total-row tax-row">
+                <span>Tax (5%)</span>
+                <span id="cart-tax">$0.00</span>
+              </div>
+              <div class="total-row grand-total">
+                <span>Total</span>
+                <span id="cart-total">$0.00</span>
+              </div>
+              <button id="checkout-btn" class="primary-btn full-width" disabled>
+                Proceed to Payment <i class="fas fa-arrow-right"></i>
+              </button>
+            </footer>
+          </main>
+        </div>
+      </section>
+
+      <!-- Screen 2: Payment -->
+      <section id="payment-screen" class="screen hidden">
+        <div class="payment-container">
+          <header class="payment-header">
+            <button id="back-to-cart" class="text-btn">
+              <i class="fas fa-arrow-left"></i> Back
+            </button>
+            <h2>Secure Checkout</h2>
+          </header>
+
+          <div class="order-summary-card">
+            <div class="summary-details">
+              <p class="summary-label">
+                Invoice #<span id="invoice-id">INV-001</span>
+              </p>
+            </div>
+            <div class="summary-row large-total">
+              <span>Total to Pay</span>
+              <span id="payment-total" class="amount">$0.00</span>
+            </div>
+          </div>
+
+          <div class="payment-methods-section">
+            <h3>Select Payment Method</h3>
+            <div class="payment-options">
+              <label class="payment-card selected">
+                <input type="radio" name="payment" value="card" checked />
+                <div class="card-icon"><i class="far fa-credit-card"></i></div>
+                <div class="card-details">
+                  <span class="card-title">Credit / Debit Card</span>
+                  <span class="card-desc">Visa, Mastercard, Amex</span>
+                </div>
+                <div class="check-circle"><i class="fas fa-check"></i></div>
+              </label>
+
+              <label class="payment-card">
+                <input type="radio" name="payment" value="upi" />
+                <div class="card-icon"><i class="fas fa-qrcode"></i></div>
+                <div class="card-details">
+                  <span class="card-title">UPI / QR Payment</span>
+                  <span class="card-desc">Google Pay, Paytm, PhonePe</span>
+                </div>
+                <div class="check-circle"><i class="fas fa-check"></i></div>
+              </label>
+            </div>
+          </div>
+
+          <button id="pay-now-btn" class="primary-btn pay-btn">
+            <i class="fas fa-lock"></i> Pay Securely
+          </button>
+        </div>
+      </section>
+
+      <!-- Screen 3: Success -->
+      <section id="success-screen" class="screen hidden">
+        <div class="success-card">
+          <div class="success-icon-container">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <h2>Payment Successful</h2>
+          <p class="order-id">
+            Transaction ID: <span id="trans-id">TXN-000000</span>
+          </p>
+          <div class="receipt-preview">
+            <p>Amount Paid</p>
+            <h1 id="success-amount">$0.00</h1>
+
+            <div id="receipt-qr" class="qr-code-box"></div>
+            <p class="receipt-sent">Scan to save receipt.</p>
+          </div>
+          <button id="new-session-btn" class="secondary-btn">
+            Start New Session
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
