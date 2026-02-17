@@ -29,7 +29,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Total Displays
   const cartSubtotalEl = document.getElementById("cart-subtotal");
-  const cartTaxEl = document.getElementById("cart-tax");
   const cartTotalEl = document.getElementById("cart-total");
   const paymentTotalEl = document.getElementById("payment-total");
   const successAmountEl = document.getElementById("success-amount");
@@ -84,7 +83,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // 1. Navigation
   checkoutBtn.addEventListener("click", () => {
     currentProcessTotal = calculateTotals().total;
-    paymentTotalEl.textContent = `₹${currentProcessTotal.toFixed(2)}`;
+    paymentTotalEl.textContent = `₹${Math.round(currentProcessTotal)}`;
     document.getElementById("invoice-id").textContent =
       `INV-${Math.floor(1000 + Math.random() * 9000)}`;
     switchScreen("payment");
@@ -131,11 +130,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function calculateTotals() {
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const tax = subtotal * 0.05; // 5% tax
     return {
       subtotal,
-      tax,
-      total: subtotal + tax,
+      total: subtotal,
     };
   }
 
@@ -167,12 +164,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // Update Text
     const totals = calculateTotals();
     cartSubtotalEl.textContent = `₹${totals.subtotal.toFixed(2)}`;
-    cartTaxEl.textContent = `₹${totals.tax.toFixed(2)}`;
     cartTotalEl.textContent = `₹${totals.total.toFixed(2)}`;
   }
 
   function handlePayment() {
-    const amount = calculateTotals().total;
+    const amount = Math.round(calculateTotals().total);
 
     // Send POST request to backend with current IST time and cart ID
     /* 
@@ -198,13 +194,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const upiId = "basilbenny1002@okhdfcbank";
     const payeeName = "Basil Benny";
     const transactionNote = "SmartBasket Payment";
-    const amountInInr = amount.toFixed(2);
+    const amountInInr = amount;
     
-    // Generate a random transaction ID
-    const transactionId = "TXN" + Date.now() + Math.floor(Math.random() * 1000);
-    
-    // Construct UPI URL with all parameters
-    const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&tr=${transactionId}&tn=${encodeURIComponent(transactionNote)}&am=${amountInInr}&cu=INR`;
+    // Construct simplified UPI URL
+    // Removing 'tr' (Transaction ID) as it can cause issues for P2P payments
+    // Keeping it simple often works best for personal UPI links
+    const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&tn=${encodeURIComponent(transactionNote)}&am=${amountInInr}&cu=INR`;
     
     window.location.href = upiUrl;
   }
