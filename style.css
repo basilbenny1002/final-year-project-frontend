@@ -486,6 +486,38 @@ h3 {
   margin-bottom: 2rem;
 }
 
+.payment-app-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-top: 10px;
+}
+
+.app-pay-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 12px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: white;
+  width: 100%;
+}
+
+.app-pay-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(110%);
+}
+
+.app-pay-btn.google-pay { background: #1a73e8; }
+.app-pay-btn.paytm { background: #002e6e; }
+.app-pay-btn.phonepe { background: #5f259f; }
+.app-pay-btn.bhim { background: #f8992a; }
+
 .payment-card {
   display: flex;
   align-items: center;

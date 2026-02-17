@@ -124,22 +124,24 @@
           </div>
 
           <div class="payment-methods-section">
-            <h3>Payment Method</h3>
-            <div class="payment-options">
-              <label class="payment-card selected">
-                <div class="card-icon"><i class="fas fa-qrcode"></i></div>
-                <div class="card-details">
-                  <span class="card-title">UPI Payment</span>
-                  <span class="card-desc">Google Pay, PhonePe, Paytm</span>
-                </div>
-                <div class="check-circle"><i class="fas fa-check"></i></div>
-              </label>
+            <h3>Select Payment App</h3>
+            <div class="payment-app-grid">
+              <button class="app-pay-btn google-pay" onclick="handleAppPayment('gpay')">
+                <i class="fab fa-google-pay"></i> Google Pay
+              </button>
+              <button class="app-pay-btn paytm" onclick="handleAppPayment('paytm')">
+                <i class="fas fa-wallet"></i> Paytm
+              </button>
+              <button class="app-pay-btn phonepe" onclick="handleAppPayment('phonepe')">
+                <i class="fas fa-mobile-alt"></i> PhonePe
+              </button>
+              <button class="app-pay-btn bhim" onclick="handleAppPayment('bhim')">
+                <i class="fas fa-university"></i> BHIM
+              </button>
             </div>
           </div>
-
-          <button id="pay-now-btn" class="primary-btn pay-btn">
-            <i class="fas fa-lock"></i> Pay with UPI
-          </button>
+          
+          <!-- Removed single pay button in favor of app buttons -->
         </div>
       </section>
 

@@ -97,10 +97,41 @@ document.addEventListener("DOMContentLoaded", () => {
   // 2. Reset
   newSessionBtn.addEventListener("click", resetSession);
 
-  // 3. Payment
-  payNowBtn.addEventListener("click", handlePayment);
+  // 3. Payment - Now handled by individual app buttons directly in HTML via handleAppPayment
   
   // --- Logic ---
+  
+  // Make function global so inline onclick works
+  window.handleAppPayment = function(appName) {
+    const amount = Math.floor(calculateTotals().total);
+    const upiId = "basilbenny1002@okhdfcbank";
+    const payeeName = "Basil Benny";
+    const transactionNote = "SmartBasket Payment";
+    
+    // Construct URI based on app selection
+    let upiUrl = "";
+    
+    // Common parameters
+    const params = `pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${amount}&tn=${encodeURIComponent(transactionNote)}&cu=INR`;
+    
+    switch(appName) {
+      case 'gpay':
+        upiUrl = `tez://upi/pay?${params}`;
+        break;
+      case 'paytm':
+        upiUrl = `paytmmp://pay?${params}`;
+        break;
+      case 'phonepe':
+        upiUrl = `phonepe://pay?${params}`;
+        break;
+      case 'bhim':
+        upiUrl = `bhim://pay?${params}`; 
+        break;
+    }
+    
+    console.log("Opening Payment App:", appName, upiUrl);
+    window.location.href = upiUrl;
+  };
 
   function switchScreen(screenName) {
     // Hide all
