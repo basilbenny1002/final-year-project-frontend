@@ -38,6 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const checkoutBtn = document.getElementById("checkout-btn");
   const backToCartBtn = document.getElementById("back-to-cart");
   const newSessionBtn = document.getElementById("new-session-btn");
+  const payNowBtn = document.getElementById("pay-now-btn");
 
   // --- WebSocket Connection ---
   function connectWebSocket() {
@@ -95,6 +96,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 2. Reset
   newSessionBtn.addEventListener("click", resetSession);
+
+  // 3. Payment
+  payNowBtn.addEventListener("click", handlePayment);
+  
   // --- Logic ---
 
   function switchScreen(screenName) {
