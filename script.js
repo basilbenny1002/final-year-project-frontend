@@ -196,8 +196,16 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // Open Google Pay with UPI payment
     const upiId = "basilbenny1002@okhdfcbank";
+    const payeeName = "Basil Benny";
+    const transactionNote = "SmartBasket Payment";
     const amountInInr = amount.toFixed(2);
-    const upiUrl = `upi://pay?pa=${upiId}&pn=SmartBasket&am=${amountInInr}&cu=INR`;
+    
+    // Generate a random transaction ID
+    const transactionId = "TXN" + Date.now() + Math.floor(Math.random() * 1000);
+    
+    // Construct UPI URL with all parameters
+    const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&tr=${transactionId}&tn=${encodeURIComponent(transactionNote)}&am=${amountInInr}&cu=INR`;
+    
     window.location.href = upiUrl;
   }
 
