@@ -199,43 +199,52 @@ document.addEventListener("DOMContentLoaded", () => {
     cartTotalEl.textContent = `₹${totals.total.toFixed(2)}`;
   }
 
-  function handlePayment() {
-    // Ensure we use the exact same integer amount shown on screen
-    const amount = Math.floor(calculateTotals().total);
+  // --- Helper Functions ---
+  
+  // Clean function to construct URI
+  function constructUri(scheme, params) {
+    return `${scheme}://pay?${params}`;
+  }
 
-    // Send POST request to backend with current IST time and cart ID
-    /* 
-    const currentISTTime = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
-    
-    fetch(`${BACKEND_URL}payment`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        cartId: cartId,
-        timestamp: currentISTTime,
-        amount: amount
-      })
-    })
-    .then(response => response.json())
-    .then(data => console.log('Payment recorded:', data))
-    .catch(error => console.error('Error recording payment:', error));
-    */
-    
-    // Open Google Pay with UPI payment
+  // --- Payment Handling ---
+
+  window.handleAppPayment = function(appName) {
+    const amount = Math.floor(calculateTotals().total);
     const upiId = "basilbenny1002@okhdfcbank";
     const payeeName = "Basil Benny";
     const transactionNote = "SmartBasket Payment";
-    const amountInInr = amount;
     
-    // Construct simplified UPI URL
-    // Removing 'tr' (Transaction ID) as it can cause issues for P2P payments
-    // Keeping it simple often works best for personal UPI links
-    const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&tn=${encodeURIComponent(transactionNote)}&am=${amountInInr}&cu=INR`;
+    // Construct simplified URI parameters
+    const params = `pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${amount}&tn=${encodeURIComponent(transactionNote)}&cu=INR`;
     
+    let upiUrl = "";
+    
+    switch(appName) {
+      case 'gpay':
+        // GPay Specific Intent
+        upiUrl = `tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${amount}&tn=${encodeURIComponent(transactionNote)}&cu=INR`;
+        break;
+      case 'paytm':
+        // Paytm Specific Intent
+        upiUrl = `paytmmp://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${amount}&tn=${encodeURIComponent(transactionNote)}&cu=INR`;
+        break;
+      case 'phonepe':
+        // PhonePe Specific Intent
+        upiUrl = `phonepe://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${amount}&tn=${encodeURIComponent(transactionNote)}&cu=INR`;
+        break;
+      case 'bhim':
+        // BHIM Specific Intent
+        upiUrl = `bhim://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${amount}&tn=${encodeURIComponent(transactionNote)}&cu=INR`;
+        break;
+    }
+    
+    console.log("Opening Payment App:", appName, upiUrl);
     window.location.href = upiUrl;
-  }
+  };
+
+  /* Deprecated: Old generic handler
+  function handlePayment() { ... }
+  */
 
   function generateReceiptQR(amount, txnId) {
     const qrContainer = document.getElementById("receipt-qr");
