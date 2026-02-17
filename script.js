@@ -167,6 +167,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function handlePayment() {
+    const amount = calculateTotals().total;
+
     // Send POST request to backend with current IST time and cart ID
     /* 
     const currentISTTime = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
@@ -179,7 +181,7 @@ document.addEventListener("DOMContentLoaded", () => {
       body: JSON.stringify({
         cartId: cartId,
         timestamp: currentISTTime,
-        amount: currentProcessTotal
+        amount: amount
       })
     })
     .then(response => response.json())
@@ -189,8 +191,8 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // Open Google Pay with UPI payment
     const upiId = "basilbenny1002@okhdfcbank";
-    const amount = currentProcessTotal.toFixed(2);
-    const upiUrl = `upi://pay?pa=${upiId}&pn=SmartBasket&am=${amount}&cu=INR`;
+    const amountInInr = amount.toFixed(2);
+    const upiUrl = `upi://pay?pa=${upiId}&pn=SmartBasket&am=${amountInInr}&cu=INR`;
     window.location.href = upiUrl;
   }
 
