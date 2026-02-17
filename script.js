@@ -82,8 +82,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 1. Navigation
   checkoutBtn.addEventListener("click", () => {
-    currentProcessTotal = calculateTotals().total;
-    paymentTotalEl.textContent = `₹${Math.round(currentProcessTotal)}`;
+    // Math.floor to ensure we don't round up (which might look like extra tax)
+    currentProcessTotal = Math.floor(calculateTotals().total);
+    paymentTotalEl.textContent = `₹${currentProcessTotal}`;
     document.getElementById("invoice-id").textContent =
       `INV-${Math.floor(1000 + Math.random() * 9000)}`;
     switchScreen("payment");
@@ -168,7 +169,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function handlePayment() {
-    const amount = Math.round(calculateTotals().total);
+    // Ensure we use the exact same integer amount shown on screen
+    const amount = Math.floor(calculateTotals().total);
 
     // Send POST request to backend with current IST time and cart ID
     /* 
