@@ -219,6 +219,14 @@ h3 {
   align-items: center;
 }
 
+.connection-status-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
 .status-badge {
   padding: 6px 12px;
   border-radius: 20px;
@@ -237,6 +245,26 @@ h3 {
 .status-badge.open {
   background: #dcfce7;
   color: #15803d;
+}
+
+.status-badge.connecting {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-badge.connected {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status-badge.disconnected {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status-badge.error {
+  background: #fecaca;
+  color: #7f1d1d;
 }
 
 .battery-indicator {

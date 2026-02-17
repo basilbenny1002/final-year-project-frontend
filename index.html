@@ -47,40 +47,14 @@
                   <i class="fas fa-battery-three-quarters"></i> 78%
                 </div>
               </div>
-            </div>
-
-            <div class="simulation-controls">
-              <h3><i class="fas fa-barcode"></i> Add Items</h3>
-              <p class="control-hint">Simulate scanning items:</p>
-              <div class="scan-grid">
-                <button
-                  class="scan-btn"
-                  data-item="Whole Milk"
-                  data-price="2.50"
-                >
-                  <i class="fas fa-wine-bottle"></i> Milk ($2.50)
-                </button>
-                <button
-                  class="scan-btn"
-                  data-item="Wheat Bread"
-                  data-price="1.80"
-                >
-                  <i class="fas fa-bread-slice"></i> Bread ($1.80)
-                </button>
-                <button
-                  class="scan-btn"
-                  data-item="Gala Apples (1kg)"
-                  data-price="3.20"
-                >
-                  <i class="fas fa-apple-alt"></i> Apples ($3.20)
-                </button>
-                <button
-                  class="scan-btn"
-                  data-item="Dark Chocolate"
-                  data-price="1.50"
-                >
-                  <i class="fas fa-cookie"></i> Choco ($1.50)
-                </button>
+              
+              <div class="connection-status-container" style="margin-top: 1rem;">
+                <div class="status-indicator">
+                  <span class="status-label">Connection:</span>
+                  <span id="connection-status" class="status-badge connecting">
+                    <i class="fas fa-spinner fa-spin"></i> Connecting...
+                  </span>
+                </div>
               </div>
             </div>
           </aside>
@@ -113,15 +87,15 @@
             <footer class="cart-footer">
               <div class="total-row">
                 <span>Subtotal</span>
-                <span id="cart-subtotal">$0.00</span>
+                <span id="cart-subtotal">₹0.00</span>
               </div>
               <div class="total-row tax-row">
                 <span>Tax (5%)</span>
-                <span id="cart-tax">$0.00</span>
+                <span id="cart-tax">₹0.00</span>
               </div>
               <div class="total-row grand-total">
                 <span>Total</span>
-                <span id="cart-total">$0.00</span>
+                <span id="cart-total">₹0.00</span>
               </div>
               <button id="checkout-btn" class="primary-btn full-width" disabled>
                 Proceed to Payment <i class="fas fa-arrow-right"></i>
@@ -149,37 +123,26 @@
             </div>
             <div class="summary-row large-total">
               <span>Total to Pay</span>
-              <span id="payment-total" class="amount">$0.00</span>
+              <span id="payment-total" class="amount">₹0.00</span>
             </div>
           </div>
 
           <div class="payment-methods-section">
-            <h3>Select Payment Method</h3>
+            <h3>Payment Method</h3>
             <div class="payment-options">
               <label class="payment-card selected">
-                <input type="radio" name="payment" value="card" checked />
-                <div class="card-icon"><i class="far fa-credit-card"></i></div>
-                <div class="card-details">
-                  <span class="card-title">Credit / Debit Card</span>
-                  <span class="card-desc">Visa, Mastercard, Amex</span>
-                </div>
-                <div class="check-circle"><i class="fas fa-check"></i></div>
-              </label>
-
-              <label class="payment-card">
-                <input type="radio" name="payment" value="upi" />
                 <div class="card-icon"><i class="fas fa-qrcode"></i></div>
                 <div class="card-details">
-                  <span class="card-title">UPI / QR Payment</span>
-                  <span class="card-desc">Google Pay, Paytm, PhonePe</span>
+                  <span class="card-title">UPI Payment</span>
+                  <span class="card-desc">Google Pay, PhonePe, Paytm</span>
                 </div>
                 <div class="check-circle"><i class="fas fa-check"></i></div>
               </label>
             </div>
           </div>
 
-          <button id="pay-now-btn" class="primary-btn pay-btn">
-            <i class="fas fa-lock"></i> Pay Securely
+          <button id="pay-now-btn" class="primary-btn pay-btn" onclick="handlePayment()">
+            <i class="fas fa-lock"></i> Pay with UPI
           </button>
         </div>
       </section>
@@ -196,7 +159,7 @@
           </p>
           <div class="receipt-preview">
             <p>Amount Paid</p>
-            <h1 id="success-amount">$0.00</h1>
+            <h1 id="success-amount">₹0.00</h1>
 
             <div id="receipt-qr" class="qr-code-box"></div>
             <p class="receipt-sent">Scan to save receipt.</p>

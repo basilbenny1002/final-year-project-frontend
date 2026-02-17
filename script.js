@@ -1,8 +1,18 @@
+// Backend URL constant
+const BACKEND_URL = "https://main-project-backend-lu62.onrender.com/";
+
 document.addEventListener("DOMContentLoaded", () => {
+  // --- Extract Cart ID from URL ---
+  const urlParams = new URLSearchParams(window.location.search);
+  const cartId = urlParams.get('id') || 'ABCD';
+
   // --- State ---
   let cart = [];
   let isLidOpen = false;
-  let currentProcessTotal = 0; // Holds the total when proceeding to checkout
+  let currentProcessTotal = 0;
+  let itemRefCounter = 1; // Auto-incrementing reference ID
+  let ws = null;
+  let isConnected = false;
 
   // --- Elements ---
   const screens = {
@@ -12,8 +22,8 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   // Shopping / Cart Elements
-  const scanButtons = document.querySelectorAll(".scan-btn");
   const lidStatusBadge = document.getElementById("lid-status");
+  const connectionStatus = document.getElementById("connection-status");
   const cartItemsContainer = document.getElementById("cart-items");
   const emptyCartMsg = document.getElementById("empty-cart-msg");
 
@@ -27,24 +37,53 @@ document.addEventListener("DOMContentLoaded", () => {
   // Buttons
   const checkoutBtn = document.getElementById("checkout-btn");
   const backToCartBtn = document.getElementById("back-to-cart");
-  const payNowBtn = document.getElementById("pay-now-btn");
   const newSessionBtn = document.getElementById("new-session-btn");
+
+  // --- WebSocket Connection ---
+  function connectWebSocket() {
+    connectionStatus.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
+    connectionStatus.className = "status-badge connecting";
+    
+    ws = new WebSocket(`wss://main-project-backend-lu62.onrender.com/frontend/ws/${cartId}`);
+    
+    ws.onopen = () => {
+      console.log("WebSocket Connected");
+      isConnected = true;
+      connectionStatus.innerHTML = '<i class="fas fa-check-circle"></i> Connected';
+      connectionStatus.className = "status-badge connected";
+    };
+    
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      console.log("Item received:", data.item_name, data.price);
+      addItemToCart(data.item_name, data.price);
+    };
+    
+    ws.onclose = (event) => {
+      console.log("WebSocket Disconnected:", event.code, event.reason);
+      isConnected = false;
+      connectionStatus.innerHTML = '<i class="fas fa-times-circle"></i> Disconnected';
+      connectionStatus.className = "status-badge disconnected";
+      // Attempt to reconnect after 3 seconds
+      setTimeout(connectWebSocket, 3000);
+    };
+    
+    ws.onerror = (err) => {
+      console.error("WebSocket error:", err);
+      connectionStatus.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error';
+      connectionStatus.className = "status-badge error";
+    };
+  }
+
+  // Initialize WebSocket
+  connectWebSocket();
 
   // --- Event Listeners ---
 
-  // 1. Scan Simulation
-  scanButtons.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const name = btn.dataset.item;
-      const price = parseFloat(btn.dataset.price);
-      simulateScan(name, price);
-    });
-  });
-
-  // 2. Navigation
+  // 1. Navigation
   checkoutBtn.addEventListener("click", () => {
     currentProcessTotal = calculateTotals().total;
-    paymentTotalEl.textContent = `$${currentProcessTotal.toFixed(2)}`;
+    paymentTotalEl.textContent = `₹${currentProcessTotal.toFixed(2)}`;
     document.getElementById("invoice-id").textContent =
       `INV-${Math.floor(1000 + Math.random() * 9000)}`;
     switchScreen("payment");
@@ -54,24 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
     switchScreen("shopping");
   });
 
-  // 3. Payment
-  payNowBtn.addEventListener("click", processPayment);
-
-  // Payment Selection Logic (Added Fix)
-  const paymentOptions = document.querySelectorAll(".payment-card");
-  paymentOptions.forEach((card) => {
-    card.addEventListener("click", () => {
-      // Remove selected from all
-      paymentOptions.forEach((c) => c.classList.remove("selected"));
-      // Add to clicked
-      card.classList.add("selected");
-      // Check the radio
-      const radio = card.querySelector('input[type="radio"]');
-      if (radio) radio.checked = true;
-    });
-  });
-
-  // 4. Reset
+  // 2. Reset
   newSessionBtn.addEventListener("click", resetSession);
   // --- Logic ---
 
@@ -86,40 +108,24 @@ document.addEventListener("DOMContentLoaded", () => {
     screens[screenName].classList.add("active");
   }
 
-  function simulateScan(name, price) {
-    if (isLidOpen) {
-      alert("System Busy: Lid is open/processing.");
-      return;
-    }
-
-    toggleLid(true);
-
-    // Simulate Hardware Delay
-    setTimeout(() => {
-      addItemToCart(name, price);
-      toggleLid(false);
-    }, 800);
-  }
-
-  function toggleLid(open) {
-    isLidOpen = open;
-    if (open) {
-      lidStatusBadge.innerHTML = '<i class="fas fa-lock-open"></i> Unlocked';
-      lidStatusBadge.className = "status-badge open";
-    } else {
-      lidStatusBadge.innerHTML = '<i class="fas fa-lock"></i> Locked';
-      lidStatusBadge.className = "status-badge closed";
-    }
-  }
-
   function addItemToCart(name, price) {
-    const id = Date.now().toString().slice(-4);
-    cart.push({ id, name, price });
+    // Check if item already exists in cart
+    const existingItem = cart.find(item => item.name === name);
+    
+    if (existingItem) {
+      // Increment quantity if item exists
+      existingItem.quantity += 1;
+    } else {
+      // Add new item with auto-incrementing reference ID
+      const id = itemRefCounter++;
+      cart.push({ id, name, price, quantity: 1 });
+    }
+    
     updateCartUI();
   }
 
   function calculateTotals() {
-    const subtotal = cart.reduce((sum, item) => sum + item.price, 0);
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const tax = subtotal * 0.05; // 5% tax
     return {
       subtotal,
@@ -145,9 +151,9 @@ document.addEventListener("DOMContentLoaded", () => {
         tr.innerHTML = `
                     <td>
                         <div style="font-weight: 500;">${item.name}</div>
-                        <div style="font-size: 0.8rem; color: #94a3b8;">Ref: ${item.id}</div>
+                        <div style="font-size: 0.8rem; color: #94a3b8;">Ref: ${item.id} | Qty: ${item.quantity}</div>
                     </td>
-                    <td class="text-right">$${item.price.toFixed(2)}</td>
+                    <td class="text-right">₹${(item.price * item.quantity).toFixed(2)}</td>
                 `;
         cartItemsContainer.appendChild(tr);
       });
@@ -155,32 +161,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Update Text
     const totals = calculateTotals();
-    cartSubtotalEl.textContent = `$${totals.subtotal.toFixed(2)}`;
-    cartTaxEl.textContent = `$${totals.tax.toFixed(2)}`;
-    cartTotalEl.textContent = `$${totals.total.toFixed(2)}`;
+    cartSubtotalEl.textContent = `₹${totals.subtotal.toFixed(2)}`;
+    cartTaxEl.textContent = `₹${totals.tax.toFixed(2)}`;
+    cartTotalEl.textContent = `₹${totals.total.toFixed(2)}`;
   }
 
-  function processPayment() {
-    const originalText = payNowBtn.innerHTML;
-    payNowBtn.innerHTML =
-      '<i class="fas fa-spinner fa-spin"></i> Processing...';
-    payNowBtn.disabled = true;
-
-    setTimeout(() => {
-      // Complete
-      payNowBtn.innerHTML = originalText;
-      payNowBtn.disabled = false;
-
-      // Set Success Data
-      const txnId = `TXN-${Date.now().toString().slice(-6)}`;
-      document.getElementById("trans-id").textContent = txnId;
-      successAmountEl.textContent = `$${currentProcessTotal.toFixed(2)}`;
-
-      // Generate QR
-      generateReceiptQR(currentProcessTotal, txnId);
-
-      switchScreen("success");
-    }, 1500);
+  function handlePayment() {
+    // Send POST request to backend with current IST time and cart ID
+    /* 
+    const currentISTTime = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+    
+    fetch(`${BACKEND_URL}payment`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        cartId: cartId,
+        timestamp: currentISTTime,
+        amount: currentProcessTotal
+      })
+    })
+    .then(response => response.json())
+    .then(data => console.log('Payment recorded:', data))
+    .catch(error => console.error('Error recording payment:', error));
+    */
+    
+    // Open Google Pay with UPI payment
+    const upiId = "basilbenny1002@okhdfcbank";
+    const amount = currentProcessTotal.toFixed(2);
+    const upiUrl = `upi://pay?pa=${upiId}&pn=SmartBasket&am=${amount}&cu=INR`;
+    window.location.href = upiUrl;
   }
 
   function generateReceiptQR(amount, txnId) {
@@ -207,6 +218,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function resetSession() {
     cart = [];
     currentProcessTotal = 0;
+    itemRefCounter = 1;
     updateCartUI();
     switchScreen("shopping");
   }
