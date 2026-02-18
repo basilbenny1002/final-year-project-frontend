@@ -37,8 +37,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const checkoutBtn = document.getElementById("checkout-btn");
   const backToCartBtn = document.getElementById("back-to-cart");
   const newSessionBtn = document.getElementById("new-session-btn");
-  const payNowBtn = document.getElementById("pay-now-btn");
-
+  const downloadBillBtn = document.getElementById("download-bill-btn"); // Added
+  
   // --- WebSocket Connection ---
   function connectWebSocket() {
     connectionStatus.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
@@ -87,8 +87,16 @@ document.addEventListener("DOMContentLoaded", () => {
     paymentTotalEl.textContent = `₹${currentProcessTotal}`;
     document.getElementById("invoice-id").textContent =
       `INV-${Math.floor(1000 + Math.random() * 9000)}`;
+    
+    // Render the Payment QR code
+    renderPaymentQR(currentProcessTotal);
+    
     switchScreen("payment");
   });
+
+  if (downloadBillBtn) {
+    downloadBillBtn.addEventListener("click", generatePDFBill);
+  }
 
   backToCartBtn.addEventListener("click", () => {
     switchScreen("shopping");
@@ -97,41 +105,12 @@ document.addEventListener("DOMContentLoaded", () => {
   // 2. Reset
   newSessionBtn.addEventListener("click", resetSession);
 
-  // 3. Payment - Now handled by individual app buttons directly in HTML via handleAppPayment
+  // 3. Download Bill
+  if (downloadBillBtn) {
+    downloadBillBtn.addEventListener("click", generatePDFBill);
+  }
   
   // --- Logic ---
-  
-  // Make function global so inline onclick works
-  window.handleAppPayment = function(appName) {
-    const amount = Math.floor(calculateTotals().total);
-    const upiId = "basilbenny1002@okhdfcbank";
-    const payeeName = "Basil Benny";
-    const transactionNote = "SmartBasket Payment";
-    
-    // Construct URI based on app selection
-    let upiUrl = "";
-    
-    // Common parameters
-    const params = `pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${amount}&tn=${encodeURIComponent(transactionNote)}&cu=INR`;
-    
-    switch(appName) {
-      case 'gpay':
-        upiUrl = `tez://upi/pay?${params}`;
-        break;
-      case 'paytm':
-        upiUrl = `paytmmp://pay?${params}`;
-        break;
-      case 'phonepe':
-        upiUrl = `phonepe://pay?${params}`;
-        break;
-      case 'bhim':
-        upiUrl = `bhim://pay?${params}`; 
-        break;
-    }
-    
-    console.log("Opening Payment App:", appName, upiUrl);
-    window.location.href = upiUrl;
-  };
 
   function switchScreen(screenName) {
     // Hide all
@@ -207,6 +186,31 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // --- Payment Handling ---
+  
+  // Function to render the Payment QR Code
+  function renderPaymentQR(amount) {
+    const qrContainer = document.getElementById("payment-qr");
+    if (!qrContainer) return;
+    
+    qrContainer.innerHTML = ""; // Clear previous
+
+    const upiId = "basilbenny1002@okhdfcbank";
+    const payeeName = "Basil Benny";
+    const transactionNote = "SmartBasket Payment";
+    
+    // Construct simplified URI for QR code (Standard UPI intent)
+    // QR codes work best with the standard 'upi://pay' scheme
+    const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${amount}&tn=${encodeURIComponent(transactionNote)}&cu=INR`;
+    
+    new QRCode(qrContainer, {
+      text: upiUrl,
+      width: 180,
+      height: 180,
+      colorDark: "#000000",
+      colorLight: "#ffffff",
+      correctLevel: QRCode.CorrectLevel.M,
+    });
+  }
 
   window.handleAppPayment = function(appName) {
     const amount = Math.floor(calculateTotals().total);
@@ -245,6 +249,61 @@ document.addEventListener("DOMContentLoaded", () => {
   /* Deprecated: Old generic handler
   function handlePayment() { ... }
   */
+  
+  function generatePDFBill() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // Header
+    doc.setFontSize(22);
+    doc.text("SmartBasket Pro", 14, 20);
+    doc.setFontSize(12);
+    doc.text("Smart Shopping Experience", 14, 28);
+    
+    // Invoice Info
+    const date = new Date();
+    const invoiceId = document.getElementById("invoice-id").textContent;
+    doc.text(`Date: ${date.toLocaleDateString()} ${date.toLocaleTimeString()}`, 14, 40);
+    doc.text(`Invoice ID: ${invoiceId}`, 14, 46);
+    
+    // Table Columns
+    const tableColumn = ["Item Name", "Price (INR)", "Quantity", "Total (INR)"];
+    const tableRows = [];
+
+    cart.forEach(item => {
+      const itemTotal = (item.price * item.quantity).toFixed(2);
+      const itemData = [
+        item.name,
+        item.price.toFixed(2),
+        item.quantity.toString(),
+        itemTotal
+      ];
+      tableRows.push(itemData);
+    });
+    
+    // Generate Table
+    doc.autoTable({
+      head: [tableColumn],
+      body: tableRows,
+      startY: 55,
+      theme: 'grid',
+      headStyles: { fillColor: [15, 23, 42] }, // --primary-color
+    });
+    
+    // Grand Total
+    const finalY = doc.lastAutoTable.finalY || 60;
+    doc.setFontSize(14);
+    doc.text(`Grand Total: ${currentProcessTotal.toFixed(2)} INR`, 14, finalY + 15);
+    
+    // Footer message
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text("Thank you for shopping with SmartBasket!", 14, finalY + 25);
+    
+    // Save PDF
+    const fileName = `SmartBasket_Bill_${invoiceId}_${date.getTime()}.pdf`;
+    doc.save(fileName);
+  }
 
   function generateReceiptQR(amount, txnId) {
     const qrContainer = document.getElementById("receipt-qr");

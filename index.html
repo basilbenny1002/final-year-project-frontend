@@ -14,6 +14,8 @@
       rel="stylesheet"
     />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
   </head>
   <body>
     <nav class="navbar">
@@ -124,7 +126,14 @@
           </div>
 
           <div class="payment-methods-section">
-            <h3>Select Payment App</h3>
+            <div class="upi-qr-section" style="text-align: center; margin-bottom: 20px;">
+              <h3>Scan to Pay</h3>
+              <!-- QR Code Container -->
+              <div id="payment-qr" class="qr-code-box" style="margin: 15px auto; display: flex; justify-content: center; padding: 10px; background: white; width: fit-content; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"></div>
+              <p style="font-size: 0.9rem; color: #64748b;">Scan with any UPI App</p>
+            </div>
+
+            <h3>Or Open Payment App</h3>
             <div class="payment-app-grid">
               <button class="app-pay-btn google-pay" onclick="handleAppPayment('gpay')">
                 <i class="fab fa-google-pay"></i> Google Pay
@@ -139,6 +148,10 @@
                 <i class="fas fa-university"></i> BHIM
               </button>
             </div>
+            
+            <button id="download-bill-btn" class="secondary-btn full-width" style="margin-top: 20px;">
+              <i class="fas fa-file-invoice"></i> Download Bill (PDF)
+            </button>
           </div>
           
           <!-- Removed single pay button in favor of app buttons -->
