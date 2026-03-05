@@ -55,8 +55,21 @@ document.addEventListener("DOMContentLoaded", () => {
     
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      console.log("Item received:", data.item_name, data.price);
-      addItemToCart(data.item_name, data.price);
+      
+      if (data.type === "payment_success") {
+        console.log("PAYMENT RECEIVED:", data.message);
+        
+        // Show success screen and populate details
+        const txnId = `TXN-${Math.floor(100000 + Math.random() * 900000)}`;
+        document.getElementById("trans-id").textContent = txnId;
+        successAmountEl.textContent = `₹${currentProcessTotal.toFixed(2)}`;
+        generateReceiptQR(currentProcessTotal, txnId);
+        
+        switchScreen("success");
+      } else if (data.item_name) {
+        console.log("Item received:", data.item_name, data.price);
+        addItemToCart(data.item_name, data.price);
+      }
     };
     
     ws.onclose = (event) => {
