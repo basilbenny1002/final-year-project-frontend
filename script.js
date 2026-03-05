@@ -194,9 +194,9 @@ document.addEventListener("DOMContentLoaded", () => {
     
     qrContainer.innerHTML = ""; // Clear previous
 
-    const upiId = "basilbenny1002@okhdfcbank";
-    const payeeName = "Basil Benny";
-    const transactionNote = "SmartBasket Payment";
+    const upiId = "anuvargheseav123@okicici";
+    const payeeName = "Anupama Varghese";
+    const transactionNote = cartId; // Use Cart ID as note
     
     // Construct simplified URI for QR code (Standard UPI intent)
     // QR codes work best with the standard 'upi://pay' scheme
@@ -214,9 +214,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   window.handleAppPayment = function(appName) {
     const amount = Math.floor(calculateTotals().total);
-    const upiId = "basilbenny1002@okhdfcbank";
-    const payeeName = "Basil Benny";
-    const transactionNote = "SmartBasket Payment";
+    const upiId = "anuvargheseav123@okicici";
+    const payeeName = "Anu Varghese";
+    const transactionNote = cartId; // Use Cart ID as note
     
     // Construct simplified URI parameters
     const params = `pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${amount}&tn=${encodeURIComponent(transactionNote)}&cu=INR`;
