@@ -66,6 +66,10 @@ document.addEventListener("DOMContentLoaded", () => {
         generateReceiptQR(currentProcessTotal, txnId);
         
         switchScreen("success");
+
+        // Directly update SQLite Cloud database from frontend
+        updateStockInSQLiteCloud(cart);
+
       } else if (data.item_name) {
         console.log("Item received:", data.item_name, data.price);
         addItemToCart(data.item_name, data.price);
@@ -411,4 +415,30 @@ document.addEventListener("DOMContentLoaded", () => {
     updateCartUI();
     switchScreen("shopping");
   }
+
+  // --- SQLite Cloud Direct Integration ---
+  async function updateStockInSQLiteCloud(cartItems) {
+    try {
+      // Dynamically load the @sqlitecloud/drivers library for the browser using ESM CDN
+      const { Database } = await import('https://cdn.jsdelivr.net/npm/@sqlitecloud/drivers/+esm');
+
+      // Use the injected ENV connection string, defaulting to the one you provided
+      const connStr = window.SQLITECLOUD_CONNECTION_STRING || "sqlitecloud://ctcpmeyddk.g2.sqlite.cloud:8860/auth.sqlitecloud?apikey=D23T1v7Owb17rMKEPq0RUlkpFCeq0IuagoGBupmHWlA";
+
+      const db = new Database(connStr);
+
+      for (const item of cartItems) {
+        const qty = parseInt(item.quantity, 10);
+        const name = item.name;
+        
+        // Use the library's template literal feature to safely sanitize inputs
+        await db.sql`UPDATE stocks SET stock_count = stock_count - ${qty} WHERE name = ${name} AND stock_count >= ${qty};`;
+        
+        console.log(`Successfully updated stock for ${name}.`);
+      }
+    } catch (error) {
+      console.error("Error connecting directly to SQLite Cloud:", error);
+    }
+  }
+
 });
