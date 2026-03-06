@@ -419,25 +419,37 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- SQLite Cloud Direct Integration ---
   async function updateStockInSQLiteCloud(cartItems) {
     try {
-      // Dynamically load the @sqlitecloud/drivers library for the browser using ESM CDN
-      const { Database } = await import('https://cdn.jsdelivr.net/npm/@sqlitecloud/drivers/+esm');
+      console.log("[SQLiteCloud] Starting stock sync from frontend...");
 
-      // Use the injected ENV connection string, defaulting to the one you provided
-      const connStr = window.SQLITECLOUD_CONNECTION_STRING || "sqlitecloud://ctcpmeyddk.g2.sqlite.cloud:8860/auth.sqlitecloud?apikey=D23T1v7Owb17rMKEPq0RUlkpFCeq0IuagoGBupmHWlA";
+      // Dynamically load the browser ESM build.
+      const { Database } = await import("https://cdn.jsdelivr.net/npm/@sqlitecloud/drivers/+esm");
+      console.log("[SQLiteCloud] Driver imported successfully.");
+
+      // In browser apps, env vars are not available automatically.
+      // They must be explicitly injected onto window by the HTML/runtime.
+      const connStr = window.SQLITECLOUD_CONNECTION_STRING;
+      if (!connStr) {
+        throw new Error(
+          "Missing SQLITECLOUD_CONNECTION_STRING on window. Inject it from your server or move DB writes to backend."
+        );
+      }
 
       const db = new Database(connStr);
+      console.log("[SQLiteCloud] Database client created.");
 
       for (const item of cartItems) {
         const qty = parseInt(item.quantity, 10);
         const name = item.name;
         
-        // Use the library's template literal feature to safely sanitize inputs
+        // Parameterized template literal keeps values safe.
         await db.sql`UPDATE stocks SET stock_count = stock_count - ${qty} WHERE name = ${name} AND stock_count >= ${qty};`;
         
-        console.log(`Successfully updated stock for ${name}.`);
+        console.log(`[SQLiteCloud] Updated stock for ${name} by ${qty}.`);
       }
+
+      console.log("[SQLiteCloud] Stock sync completed.");
     } catch (error) {
-      console.error("Error connecting directly to SQLite Cloud:", error);
+      console.error("[SQLiteCloud] Frontend stock sync failed:", error);
     }
   }
 
