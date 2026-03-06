@@ -179,7 +179,14 @@ document.addEventListener("DOMContentLoaded", () => {
                         <div style="font-weight: 500;">${item.name}</div>
                         <div style="font-size: 0.8rem; color: #94a3b8;">Ref: ${item.id} | Qty: ${item.quantity}</div>
                     </td>
-                    <td class="text-right">₹${(item.price * item.quantity).toFixed(2)}</td>
+                    <td class="text-right">
+                        <div style="display: flex; justify-content: flex-end; align-items: center; gap: 12px;">
+                            <span>₹${(item.price * item.quantity).toFixed(2)}</span>
+                            <button onclick="removeCartItem(${item.id})" class="remove-item-btn" title="Remove Item">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </td>
                 `;
         cartItemsContainer.appendChild(tr);
       });
@@ -190,6 +197,21 @@ document.addEventListener("DOMContentLoaded", () => {
     cartSubtotalEl.textContent = `₹${totals.subtotal.toFixed(2)}`;
     cartTotalEl.textContent = `₹${totals.total.toFixed(2)}`;
   }
+
+  // --- Global functions ---
+  window.removeCartItem = function(id) {
+    const index = cart.findIndex(item => item.id === id);
+    if (index !== -1) {
+      if (cart[index].quantity > 1) {
+        // Decrease quantity if more than 1
+        cart[index].quantity -= 1;
+      } else {
+        // Remove completely if only 1 left
+        cart.splice(index, 1);
+      }
+      updateCartUI();
+    }
+  };
 
   // --- Helper Functions ---
   
@@ -265,30 +287,48 @@ document.addEventListener("DOMContentLoaded", () => {
   
   function generatePDFBill() {
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
+    // Create a portrait, receipt-style PDF layout in A5 size for better design
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a5"
+    });
+    
+    const pageWidth = doc.internal.pageSize.getWidth();
     
     // Header
+    doc.setFont("helvetica", "bold");
     doc.setFontSize(22);
-    doc.text("SmartBasket Pro", 14, 20);
-    doc.setFontSize(12);
-    doc.text("Smart Shopping Experience", 14, 28);
+    doc.text("SmartBasket", pageWidth / 2, 20, { align: "center" });
+    
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text("Your Smart Shopping Experience", pageWidth / 2, 26, { align: "center" });
+    
+    // Divider
+    doc.setLineWidth(0.5);
+    doc.setDrawColor(200, 200, 200);
+    doc.line(10, 32, pageWidth - 10, 32);
     
     // Invoice Info
     const date = new Date();
     const invoiceId = document.getElementById("invoice-id").textContent;
-    doc.text(`Date: ${date.toLocaleDateString()} ${date.toLocaleTimeString()}`, 14, 40);
-    doc.text(`Invoice ID: ${invoiceId}`, 14, 46);
+    doc.setFontSize(9);
+    doc.setTextColor(80, 80, 80);
+    doc.text(`Date: ${date.toLocaleDateString()} ${date.toLocaleTimeString()}`, 10, 40);
+    doc.text(`Invoice # ${invoiceId}`, 10, 45);
+    doc.text(`Session: #892-BA`, 10, 50);
     
     // Table Columns
-    const tableColumn = ["Item Name", "Price (INR)", "Quantity", "Total (INR)"];
+    const tableColumn = ["Item", "Qty", "Price", "Total"];
     const tableRows = [];
 
     cart.forEach(item => {
       const itemTotal = (item.price * item.quantity).toFixed(2);
       const itemData = [
         item.name,
-        item.price.toFixed(2),
         item.quantity.toString(),
+        item.price.toFixed(2),
         itemTotal
       ];
       tableRows.push(itemData);
@@ -299,22 +339,47 @@ document.addEventListener("DOMContentLoaded", () => {
       head: [tableColumn],
       body: tableRows,
       startY: 55,
-      theme: 'grid',
-      headStyles: { fillColor: [15, 23, 42] }, // --primary-color
+      theme: 'plain',
+      headStyles: { 
+        fillColor: [255, 255, 255], 
+        textColor: [15, 23, 42],
+        fontStyle: 'bold',
+        lineWidth: { bottom: 0.5 },
+        lineColor: [200, 200, 200]
+      },
+      bodyStyles: {
+        textColor: [50, 50, 50],
+      },
+      columnStyles: {
+        0: { cellWidth: 'auto' },
+        1: { cellWidth: 15, halign: 'center' },
+        2: { cellWidth: 20, halign: 'right' },
+        3: { cellWidth: 25, halign: 'right' },
+      },
+      margin: { left: 10, right: 10 }
     });
     
     // Grand Total
     const finalY = doc.lastAutoTable.finalY || 60;
+    
+    // Divider before total
+    doc.setLineWidth(0.5);
+    doc.line(10, finalY + 5, pageWidth - 10, finalY + 5);
+    
     doc.setFontSize(14);
-    doc.text(`Grand Total: ${currentProcessTotal.toFixed(2)} INR`, 14, finalY + 15);
+    doc.setTextColor(15, 23, 42); // --primary-color
+    doc.setFont("helvetica", "bold");
+    doc.text("Total:", 10, finalY + 15);
+    doc.text(`₹${currentProcessTotal.toFixed(2)}`, pageWidth - 10, finalY + 15, { align: "right" });
     
     // Footer message
     doc.setFontSize(10);
+    doc.setFont("helvetica", "italic");
     doc.setTextColor(100);
-    doc.text("Thank you for shopping with SmartBasket!", 14, finalY + 25);
+    doc.text("Thank you for shopping with SmartBasket!", pageWidth / 2, finalY + 35, { align: "center" });
     
     // Save PDF
-    const fileName = `SmartBasket_Bill_${invoiceId}_${date.getTime()}.pdf`;
+    const fileName = `SmartBasket_Bill_${invoiceId}.pdf`;
     doc.save(fileName);
   }
 

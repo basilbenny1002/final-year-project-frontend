@@ -428,6 +428,45 @@ h3 {
   transform: none;
 }
 
+.secondary-btn {
+  background: white;
+  color: var(--primary-color);
+  border: 1px solid var(--border-color);
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.secondary-btn:hover {
+  background: #f8fafc;
+  border-color: var(--text-light);
+  color: var(--accent-color);
+}
+
+.remove-item-btn {
+  background: none;
+  border: none;
+  color: #ef4444; /* red color */
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remove-item-btn:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
 .full-width {
   width: 100%;
 }
