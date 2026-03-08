@@ -66,6 +66,22 @@ document.addEventListener("DOMContentLoaded", () => {
         generateReceiptQR(currentProcessTotal, txnId);
         
         switchScreen("success");
+
+        // Notify backend to deduct purchased items from database stock
+        fetch(`${BACKEND_URL}api/update-stock`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ 
+            cart_id: cartId,
+            items: cart.map(item => ({ name: item.name, quantity: item.quantity }))
+          })
+        })
+        .then(response => response.json())
+        .then(data => console.log("Stock updated successfully:", data))
+        .catch(error => console.error("Error updating stock:", error));
+
       } else if (data.item_name) {
         console.log("Item received:", data.item_name, data.price);
         addItemToCart(data.item_name, data.price);
