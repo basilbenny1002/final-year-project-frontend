@@ -386,7 +386,8 @@ document.addEventListener("DOMContentLoaded", () => {
     doc.setTextColor(15, 23, 42); // --primary-color
     doc.setFont("helvetica", "bold");
     doc.text("Total:", 10, finalY + 15);
-    doc.text(`₹${currentProcessTotal.toFixed(2)}`, pageWidth - 10, finalY + 15, { align: "right" });
+    // The standard helvetica font in jsPDF doesn't support the ₹ symbol
+    doc.text(`Rs. ${currentProcessTotal.toFixed(2)}`, pageWidth - 10, finalY + 15, { align: "right" });
     
     // Footer message
     doc.setFontSize(10);
