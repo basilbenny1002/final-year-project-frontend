@@ -66,6 +66,22 @@ document.addEventListener("DOMContentLoaded", () => {
         generateReceiptQR(currentProcessTotal, txnId);
         
         switchScreen("success");
+
+        // Notify backend to deduct purchased items from database stock
+        fetch(`${BACKEND_URL}api/update-stock`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ 
+            cart_id: cartId,
+            items: cart.map(item => ({ name: item.name, quantity: item.quantity }))
+          })
+        })
+        .then(response => response.json())
+        .then(data => console.log("Stock updated successfully:", data))
+        .catch(error => console.error("Error updating stock:", error));
+
       } else if (data.item_name) {
         console.log("Item received:", data.item_name, data.price);
         addItemToCart(data.item_name, data.price);
@@ -370,7 +386,8 @@ document.addEventListener("DOMContentLoaded", () => {
     doc.setTextColor(15, 23, 42); // --primary-color
     doc.setFont("helvetica", "bold");
     doc.text("Total:", 10, finalY + 15);
-    doc.text(`₹${currentProcessTotal.toFixed(2)}`, pageWidth - 10, finalY + 15, { align: "right" });
+    // The standard helvetica font in jsPDF doesn't support the ₹ symbol
+    doc.text(`Rs. ${currentProcessTotal.toFixed(2)}`, pageWidth - 10, finalY + 15, { align: "right" });
     
     // Footer message
     doc.setFontSize(10);
